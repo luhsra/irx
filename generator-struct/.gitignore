@@ -1,0 +1,10 @@
+extract-blob
+test.ll
+zephyr.elf
+zephyr.elf.*
+**/*.bin
+**/*.map
+callgrind.out.*
+test
+
+native-vitali.ini

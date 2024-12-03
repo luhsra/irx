@@ -1,0 +1,16 @@
+**/*.o
+**/*.bc
+**/*.ll
+**/.cache/
+.cache/
+build/
+builddir/
+cython_debug/
+compile_commands.json
+pypyirinterpreter.cpp
+pyirinterpreter.cpp
+**/*.so
+lib64/
+lib/
+native.txt
+**/__pycache__/

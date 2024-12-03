@@ -1,0 +1,6 @@
+**/
+gllvm-meson
+toolchains
+zephyr
+ara-link
+ara-link.wrap

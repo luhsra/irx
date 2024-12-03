@@ -1,0 +1,13 @@
+.cache/
+compile_commands.json
+# llvm-internal/
+irinterpreter2
+builddir/
+**/*.o
+**/*.so
+**/*.bc
+**/*.ll
+**/*.gcno
+
+malloc.c
+callgrind.out.*
