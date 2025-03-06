@@ -499,7 +499,7 @@ void MyInterpreter::LoadValueFromMemory(GenericValue &Result,
     
     const unsigned StoreBytes = getDataLayout().getTypeStoreSize(Ty);
     
-    if (Ty->getTypeID() == Type::PointerTyID && StoreBytes != sizeof(PointerTy)) {
+    if (Ty->getTypeID() == Type::ArrayTyID || (Ty->getTypeID() == Type::PointerTyID && StoreBytes != sizeof(PointerTy))) {
         // print_bytes((char*)Ptr, StoreBytes);
         DBGS() << cyan << "MyInterpreter LoadValueFromMemory: handeling loading Pointer with custom memcpy "
             << StoreBytes << reset << "\n";
@@ -521,7 +521,7 @@ void MyInterpreter::StoreValueToMemory(const GenericValue &Val, GenericValue *Pt
     
     const unsigned StoreBytes = getDataLayout().getTypeStoreSize(Ty);
     
-    if (Ty->getTypeID() == Type::PointerTyID && StoreBytes != sizeof(PointerTy)) {
+    if (Ty->getTypeID() == Type::ArrayTyID || (Ty->getTypeID() == Type::PointerTyID && StoreBytes != sizeof(PointerTy))) {
         // ExecutionEngine::StoreValueToMemory(Val, Ptr, Type::IntegerTyID); will not work, as PointerVal is not stored in APInt
         // print_bytes((char*)Ptr, StoreBytes);
         DBGS() << cyan << "MyInterpreter StoreValueToMemory: handeling loading Pointer with custom memcpy "
