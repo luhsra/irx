@@ -43,8 +43,8 @@ class IRXAllocator;
 
 // logging
 std::ostream& get_nulls();
-// #define DBGS() llvm::dbgs()
-#define DBGS() ::get_nulls()
+#define DBGS() llvm::dbgs()
+//#define DBGS() ::get_nulls()
 
 const std::string black = "\x1B[1;30m";
 const std::string red = "\x1B[1;31m";

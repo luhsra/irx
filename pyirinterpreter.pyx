@@ -56,7 +56,7 @@ cdef class PyIRModuleInterpreter:
         return self.irx.createInterpreter()
 
     def runFunction(self, string FunctionName, args, args_type_hints):
-        logger.debug(f"len(args): {len(args)}")
+        logger.debug(f"Run {FunctionName} len(args): {len(args)}")
         cdef vector[llvmGenericValue] Args
         Args.resize(len(args))
 

@@ -21,6 +21,7 @@
 #include <llvm/ADT/APInt.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/IR/DerivedTypes.h>
+#include "llvm/IR/InlineAsm.h"
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Verifier.h>
@@ -254,31 +255,34 @@ void MyInterpreter::visitLoadInst(LoadInst &LI) {
     // GenericValue *Ptr = (GenericValue *) allocator->vvptr2vptr((uintptr_t)GVTOP(SRC));
     
     GenericValue *Ptr = (GenericValue *) vvptr2vptr((uintptr_t)vvptr);
-    // auto Ty = LI.getOperand(0)->getType();
     auto Ty = LI.getType();
     
-    bool debug_load = false;
-    
-    if(debug_load) {
-        std::cout << "LOAD: [" << (void*)vvptr << " => " << (void*)Ptr << "]" << "\n";
-    }
-    
+
+    DBGS() << "LOAD: @ " << *PointerOperand << "\n";
+    DBGS() << "LOAD: " << LI << "\n";
+    DBGS() << "LOAD: TYPE " << Ty->getTypeID() << "\n";
+    DBGS() << "LOAD: [" << (void*)vvptr << " => " << (void*)Ptr << "]" << "\n";
+
     LoadValueFromMemory(Result, Ptr, Ty);
-    
-    if(debug_load) {
-        std::cout << "LOAD: [" << (void*)vvptr << " => " << (void*)Ptr << "] <- (PTR) "
-            << (void*) Result.PointerVal << "\n";
-        std::cout << "LOAD: [" << (void*)vvptr << " => " << (void*)Ptr << "] <- (INT) "
-            << (void*) Result.IntVal.getSExtValue() << "\n";
+
+    switch(Ty->getTypeID()) {
+        case Type::IntegerTyID:
+            DBGS() << "LOAD: [" << (void*)vvptr << " => " << (void*)Ptr << "] <- (INT) "
+            << (int) Result.IntVal.getSExtValue() << "\n"; break;
+        case Type::ArrayTyID:
+            DBGS() << "LOAD: [" << (void*)vvptr << " => " << (void*)Ptr << "] <- (ARR)[0] "
+            <<  (int) Result.Untyped[0] << "\n"; break;
+        default:
+            DBGS() << "LOAD: [" << (void*)vvptr << " => " << (void*)Ptr << "] <- (PTR) "
+            << (void*) Result.PointerVal << "\n"; break;
     }
     
     SF.Values[&LI] = Result;
-    
 }
 
 void MyInterpreter::visitStoreInst(StoreInst &SI) {
     ExecutionContext &SF = ECStack.back();
-    // llvm::Value* PointerOperand = SI.getPointerOperand();
+    llvm::Value* PointerOperand = SI.getPointerOperand();
     
     // SF.Values.at(PointerOperand)
     // auto it = SF.Values.find(PointerOperand);
@@ -289,10 +293,10 @@ void MyInterpreter::visitStoreInst(StoreInst &SI) {
     GenericValue Val = getOperandValue(SI.getOperand(0), SF);
     GenericValue SRC = getOperandValue(SI.getPointerOperand(), SF);
     
-    GenericValue *Ptr = (GenericValue *) GVTOP(SRC);
+    GenericValue *vvptr = (GenericValue *) GVTOP(SRC);
     // GenericValue *Ptr = (GenericValue *) allocator->vvptr2vptr((uintptr_t)GVTOP(SRC));
     
-    Ptr = (GenericValue *) vvptr2vptr((uintptr_t)Ptr);
+    GenericValue *Ptr = (GenericValue *) vvptr2vptr((uintptr_t)vvptr);
     
     Type *Ty = SI.getOperand(0)->getType();
     
@@ -310,15 +314,28 @@ void MyInterpreter::visitStoreInst(StoreInst &SI) {
             }
         }
     }
-    
+
+    DBGS() << "STORE: @ " << *PointerOperand << "\n";
+    DBGS() << "STORE: " << SI << "\n";
+    DBGS() << "STORE: TYPE " << Ty->getTypeID() << "\n";
+    DBGS() << "STORE: [" << (void*)vvptr << " => " << (void*)Ptr << "]" << "\n";
+
     StoreValueToMemory(Val, Ptr,
-                        SI.getOperand(0)->getType());
-    
-    // llvm::outs() << "STORE: @ " << *PointerOperand << "\n";
-    // llvm::outs() << "STORE: " << SI << "\n";
-    // llvm::outs() << "STORE: vv[" << SRC.PointerVal << "] <- (PTR) " << Val.PointerVal << "\n";
-    // llvm::outs() << "STORE: vv[" << SRC.PointerVal << "] <- (INT) " << Val.IntVal.getSExtValue() << "\n";
-    // llvm::outs() << "STORE: v[" << (uint8_t*)Ptr << "] <- (INT) " << Val.IntVal.getSExtValue() << "\n";
+        SI.getOperand(0)->getType());
+
+    switch(Ty->getTypeID()) {
+        case Type::IntegerTyID:
+            DBGS() << "STORE: [" << (void*)vvptr << " => " << (void*)Ptr << "] <- (INT) "
+            << (int) Val.IntVal.getSExtValue() << "\n"; break;
+        case Type::ArrayTyID:
+            DBGS() << "STORE: [" << (void*)vvptr << " => " << (void*)Ptr << "] <- (ARR)[0] "
+            <<  (int) Val.Untyped[0] << "\n"; break;
+        default:
+            DBGS() << "STORE: [" << (void*)vvptr << " => " << (void*)Ptr << "] <- (PTR) "
+            << (void*) Val.PointerVal << "\n"; break;
+    }
+
+
 }
 
 Function* MyInterpreter::findFunctionByVPtr(void* vptr) {
@@ -409,6 +426,8 @@ void MyInterpreter::visitCallBase(CallBase &call) {
 #endif // LLVM_ENABLE_DUMP
                 errs() << red << "warning: Function not found skipping!" << reset << "\n";
             }
+        }  else if (call.isInlineAsm()) {
+            DBGS() << "visitCallBase: Inline ASM detected, ignoring " << ((llvm::InlineAsm*) call.getCalledOperand())->getAsmString() << "\n";
         } else {
             print_stack("visitCallBase vvptr2vptr", ECStack);
 #ifdef LLVM_ENABLE_DUMP
@@ -749,7 +768,7 @@ void IRModuleInterpreter::resetExtraAllocations() {
 
 void MyInterpreter::resetExtraAllocations() {
     for(uintptr_t vvptr : allocations) {
-        std::cout << (void*) vvptr << std::endl;
+        DBGS() << (void*) vvptr << "\n";
         allocator->free(vvptr);
     }
     
@@ -1010,7 +1029,7 @@ void MyInterpreter::updateGlobalMappings() {
             if(Ptr) {
                 struct irx_alloc alloc = allocator->add(Ptr, size);
                 LLVM_DEBUG(DBGS() << "updateGlobalMappings GVName: " << Global.getName().str() << "\t" << Ptr << " " << (void*) alloc.vvptr << "\n");
-                errs() << "updateGlobalMappings GVName: " << Global.getName().str() << "\t" << Ptr << " " << (void*) alloc.vvptr << "\n";
+                //errs() << "updateGlobalMappings GVName: " << Global.getName().str() << "\t" << Ptr << " " << (void*) alloc.vvptr << "\n";
                 
                 updateGlobalMapping(&Global, (void*) alloc.vvptr);
 
@@ -1136,6 +1155,7 @@ bool IRModuleInterpreter::runFunction(std::string FunctionName, std::vector<Gene
         errs() << "Function " << FunctionName << " not found in module.\n";
         return false;
     }
+    DBGS() << "Function " << FunctionName << "\n";
     
     for(auto arg : Args) {
         DBGS() << "arg[] PTR: " << arg.PointerVal;
