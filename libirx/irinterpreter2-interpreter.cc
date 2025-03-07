@@ -258,8 +258,8 @@ void MyInterpreter::visitLoadInst(LoadInst &LI) {
     auto Ty = LI.getType();
     
 
-    DBGS() << "LOAD: @ " << *PointerOperand << "\n";
-    DBGS() << "LOAD: " << LI << "\n";
+    //DBGS() << "LOAD: @ " << *PointerOperand << "\n";
+    //DBGS() << "LOAD: " << LI << "\n";
     DBGS() << "LOAD: TYPE " << Ty->getTypeID() << "\n";
     DBGS() << "LOAD: [" << (void*)vvptr << " => " << (void*)Ptr << "]" << "\n";
 
@@ -315,8 +315,8 @@ void MyInterpreter::visitStoreInst(StoreInst &SI) {
         }
     }
 
-    DBGS() << "STORE: @ " << *PointerOperand << "\n";
-    DBGS() << "STORE: " << SI << "\n";
+    //DBGS() << "STORE: @ " << *PointerOperand << "\n";
+    //DBGS() << "STORE: " << SI << "\n";
     DBGS() << "STORE: TYPE " << Ty->getTypeID() << "\n";
     DBGS() << "STORE: [" << (void*)vvptr << " => " << (void*)Ptr << "]" << "\n";
 
@@ -469,7 +469,7 @@ void MyInterpreter::visitCallBase(CallBase &call) {
         // callFunction((Function*)GVTOP(SRC), ArgVals);
 
         // Interpreter::visitCallBase(call);
-        // std::cout << "calling function: " << F->getName().str() << std::endl;
+        DBGS() << "calling function: " << F->getName().str() << "\n";
         // visitCallBase(call);
         visit(call);
         
