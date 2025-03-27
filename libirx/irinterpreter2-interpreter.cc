@@ -637,6 +637,10 @@ bool MyInterpreter::runInstruction(Instruction &I) {
         }
         
         visitCallBase(call);
+
+    } else if (I.getOpcode() == Instruction::Fence) {
+        llvm::dbgs() << "Skipping FENCE " << I << "\n";
+
     } else {
         visit(I);
     }
