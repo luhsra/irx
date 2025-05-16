@@ -13,7 +13,6 @@ from libc.stdint cimport uintptr_t
 from cpython.ref cimport PyObject
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_FromString
-from cpython.string cimport PyString_FromString
 from cpython.long cimport PyLong_FromLong, PyLong_FromLongLong
 from cython.operator cimport dereference as deref
 
@@ -431,9 +430,15 @@ cdef class PyIRModuleInterpreter:
         cdef llvmGenericValue Result = llvmGenericValue()
         if type(arg).__name__ == 'int':
             if type_hint == 'APInt32':
-                Result.IntVal = APInt(32U, <unsigned long>arg, <bool>False)
+                if (arg >= 0):
+                    Result.IntVal = APInt(32U, <unsigned long>arg, <bool>False)
+                else:
+                    Result.IntVal = APInt(32U, <long>arg, <bool>True)
             elif type_hint == 'APInt64':
-                Result.IntVal = APInt(64U, <unsigned long>arg, <bool>False)
+                if (arg >= 0):
+                    Result.IntVal = APInt(64U, <unsigned long>arg, <bool>False)
+                else:
+                    Result.IntVal = APInt(64U, <long>arg, <bool>False)
             elif type_hint == 'PTR':
                 Result = llvmGenericValue(<void*><stdint.uintptr_t>arg)
             else:

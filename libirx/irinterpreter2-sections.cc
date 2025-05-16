@@ -553,7 +553,9 @@ Module* collectLinkerScriptSections(Module *M) {
         
         GlobalVariable *area = emitLinkerScriptGlobal(MG, sectionType->section(), Ty, values);
         
-        emitLinkerScriptGlobalsOffset(MG, M, sectionType->start(""), values, area, indices.front());
+        if (!indices.empty()) {
+            emitLinkerScriptGlobalsOffset(MG, M, sectionType->start(""), values, area, indices.front());
+        }
         
         for(auto &level : sectionType->levels()) {
             if(!level.empty()) {
