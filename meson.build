@@ -1,5 +1,5 @@
 project('pyirinterpreter', ['cpp', 'cython'],
-    version: '0.0',
+    meson_version: '>=1.10.0', version: 'SRA\'26',
     default_options: ['warning_level=3',
                       'cpp_std=c++17',
                       'buildtype=debugoptimized'])
@@ -76,8 +76,10 @@ irx_tgt = py_targets + [pyirinterpreter]
 nop = find_program('true')
 run_target('irx', command: nop, depends: irx_tgt)
 
-subdir('test')
-subdir('libirx/tests')
+if get_option('build_irx-tests')
+  subdir('test')
+  subdir('libirx/tests')
+endif
 subdir('extract-blob')
 subdir('generator-struct')
 subdir('native_runner')
