@@ -1,4 +1,5 @@
 [wrap-git]
 url = https://github.com/luhsra/gllvm-meson.git
-revision = github
+revision = ospert25 
+
 depth = 1
