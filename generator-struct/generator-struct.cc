@@ -129,15 +129,15 @@ DIType *resolve(DIType* DITy) {
   return nullptr;
 }
 
-bool is_member(DIType* DITy) {
-  DIScope *S = DITy;
-  S->dump();
-  while((S = S->getScope())) {
-    S->dump();
-  }
-  
-  return false;
-}
+//bool is_member(DIType* DITy) {
+//  DIScope *S = DITy;
+//  S->dump();
+//  while((S = S->getScope())) {
+//    S->dump();
+//  }
+//  
+//  return false;
+//}
 
 DIBasicType* toBasicType(DIType* DITy);
 
